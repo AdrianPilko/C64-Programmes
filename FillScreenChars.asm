@@ -1,5 +1,3 @@
-; 6510 asm code fills the entire screen with first A then B... to Z then reset back to a and loop forever
-
 ; 10 SYS (2064)
 
 *=$0801
@@ -9,6 +7,7 @@
 *=$0810
 
 loc_CharToPutOnScreen = $0f00
+loc_backgroundColour = $0f01          
 charToStart = #01
 SCREENRAM       = $0400
           
@@ -43,7 +42,18 @@ raster_check
 start
           WAIT_FOR_RASTER          ; wait for the crt scan to go off visible part of screen
                                    ; this stop partial update to screen an avoids flicker
-          LIBSCREEN_SET1000 SCREENRAM, loc_CharToPutOnScreen
+          LIBSCREEN_SET1000 SCREENRAM,loc_CharToPutOnScreen
+
+          ldx            loc_backgroundColour
+          stx            $d021
+          inx
+          cpx            #16       
+          beq            resetBackgroundColour
+
+continueAfterBackgroundColReset
+ 
+          stx            loc_backgroundColour
+            
           ldx            loc_CharToPutOnScreen    ; increment the character to add to screen
           inx
           cpx            #26     
@@ -56,5 +66,6 @@ continueAfterReset
 resetChar    ; load register with starting character to reset it 
           ldx            charToStart  
           jmp            continueAfterReset
-          
-          
+resetBackgroundColour ; reset the colour value for the background colour          
+          ldx            #00       
+          jmp            continueAfterBackgroundColReset
