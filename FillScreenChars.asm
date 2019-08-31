@@ -24,6 +24,7 @@ loc_delayVal
           brk ; 16bit first bytes
           brk ; 16bit second byte
           
+;; routine taken from Derek Morris book Retro Game Dev          
 defm    LIBMATH_SUB16BIT_AAA
                 ; /1 = 1st Number word (Address)
                 ; /2 = 2nd Number word (Address)
@@ -38,7 +39,7 @@ defm    LIBMATH_SUB16BIT_AAA
         sta /3+1  ; Store sum in MSB of sum
 endm
 
-          
+;; routine taken from Derek Morris book Retro Game Dev          
 ; Sets 1000 bytes of memory from start address with a value
 defm    LIBSCREEN_SET1000       ; /1 = Start  (Address)
                                 ; /2 = Number (Adress)
