@@ -6,10 +6,38 @@
 
 *=$0810
 
-loc_CharToPutOnScreen = $0f00
-loc_backgroundColour = $0f01          
 charToStart = #01
-SCREENRAM       = $0400
+SCREENRAM = $0400
+
+          jmp            initCode  
+          
+
+loc_CharToPutOnScreen
+          brk
+loc_backgroundColour
+          brk
+          
+libDelay_one
+          brk
+          brk
+loc_delayVal
+          brk ; 16bit first bytes
+          brk ; 16bit second byte
+          
+defm    LIBMATH_SUB16BIT_AAA
+                ; /1 = 1st Number word (Address)
+                ; /2 = 2nd Number word (Address)
+                ; /3 = 3rd Number word (Address)
+                
+        sec     ; sec is the same as clear borrow
+        lda /1  ; Get LSB of first number
+        sbc /2 ; Subtract LSB of second number
+        sta /3  ; Store in LSB of sum
+        lda /1+1  ; Get MSB of first number
+        sbc /2+1 ; Subtract borrow and MSB of NUM2
+        sta /3+1  ; Store sum in MSB of sum
+endm
+
           
 ; Sets 1000 bytes of memory from start address with a value
 defm    LIBSCREEN_SET1000       ; /1 = Start  (Address)
@@ -32,11 +60,11 @@ raster_check
           lda            $d012     ; check the raster off visible screen
           cmp            #01        
           bne            raster_check
-          
-          endm
-          
-          
+endm
 
+
+initCode          
+         
           lda            charToStart  
           sta            loc_CharToPutOnScreen     
 start
@@ -48,24 +76,45 @@ start
           stx            $d021
           inx
           cpx            #16       
-          beq            resetBackgroundColour
-
-continueAfterBackgroundColReset
- 
-          stx            loc_backgroundColour
-            
+          bne            skipresetBackgroundColour
+          jsr resetBackgroundColour
+skipresetBackgroundColour
+          stx            loc_backgroundColour          
+          jsr            LIBDELAY  
           ldx            loc_CharToPutOnScreen    ; increment the character to add to screen
           inx
-          cpx            #26     
-          beq            resetChar
-continueAfterReset  
+          cpx            #27   
+          bne skipResetChar           
+          jsr resetChar 
+skipResetChar 
           stx            loc_CharToPutOnScreen    
           jmp            start     
           
          
 resetChar    ; load register with starting character to reset it 
           ldx            charToStart  
-          jmp            continueAfterReset
+          rts
 resetBackgroundColour ; reset the colour value for the background colour          
           ldx            #00       
-          jmp            continueAfterBackgroundColReset
+          rts     
+          
+
+LIBDELAY
+          lda            #01        
+          sta            libDelay_one
+          lda            #00       
+          sta            libDelay_one+1          
+          lda            #$00
+          sta            loc_delayVal
+          lda            #$30      
+          sta            loc_delayVal+1
+libDelay_loop
+          LIBMATH_SUB16BIT_AAA loc_delayVal, libDelay_one, loc_delayVal
+         
+          ldx            loc_delayVal
+          cpx            #0        
+          bne libDelay_loop
+          ldx            loc_delayVal+1                
+          cpx            #0        
+          bne libDelay_loop          
+          rts
