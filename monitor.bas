@@ -1,6 +1,6 @@
 1 dim f%(8)
-3 poke 53280,0 rem set border colour to black
-4 poke 53281,0 rem set background colour to black
+3 poke 53280,0 
+4 poke 53281,0
 5  print "{clear}ade's: machine code monitor"
 8  print "==========================="
 10 print "1 - peek "
@@ -24,10 +24,10 @@
 110 print "memory poked " b " bytes with " v:print"press enter to continue":input c
 120 goto 5 
 130 print "enter start location?":input a:p=0
-131 for i=a to a+23:l=peek(i):n=1:for j=7 to 0 step -1:f(j)=sgn(l and n):n=n+n:next
+131 for i=a to a+23:l=peek(i):goto 1990
 132 if p=i-a then pp$="<="
 133 if p<>i-a then pp$=" " 
-135 print i":"f(0)f(1)f(2)f(3)f(4)f(5)f(6)f(7)pp$:next
+135 print i":" r$ pp$:next
 140 get d$
 145 if d$="u" then p=p-1:print"{clear}":goto 155 
 150 if d$="d" then p=p+1:print"{clear}":goto 155
@@ -42,3 +42,11 @@
 1002 h=val(ed$)   
 1010 poke p+a,h
 1050 goto 131
+1989 rem subroutine to convert string to hex,input integer stored in l before
+1990 v%=abs(l): gosub 2000
+1995 goto 132
+2000 r$ = "" : hx$ = "0123456789abcdef"
+2010 r$ = mid$(hx$, 1+(v% and 15), 1) + r$
+2030 v% = v%/16 : if v%=0 then return
+2040 goto 2010
+                    
